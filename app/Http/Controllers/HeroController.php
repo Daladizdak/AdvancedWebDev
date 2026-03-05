@@ -2,30 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Hero;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class HeroController extends Controller
 {
     public function index()
     {
-        $heroes = Hero::all();
+        $response = Http::get('https://api.opendota.com/api/heroStats');
+
+        $heroes = collect($response->json())->map(function ($hero) {
+
+            $hero['image'] = 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/' .
+                str_replace('npc_dota_hero_', '', $hero['name']) . '_full.png';
+
+            return $hero;
+        });
+
         return view('heroes.index', compact('heroes'));
-    }
-
-    public function create()
-    {
-        return view('heroes.create');
-    }
-
-    public function store(Request $request)
-    {
-        Hero::create($request->except('_token'));
-        return redirect('/heroes');
-    }
-
-    public function show(Hero $hero)
-    {
-        return view('heroes.show', compact('hero'));
     }
 }
