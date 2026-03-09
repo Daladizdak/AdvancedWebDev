@@ -48,7 +48,7 @@ Dota 2 Hub
 </li>
 
 <li class="nav-item">
-<a class="nav-link" href="{{ url('/about') }}">About</a>
+<a class="nav-link" href="{{ url('/workshop') }}">Workshop</a>
 </li>
 
 </ul>
