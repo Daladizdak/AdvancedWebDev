@@ -15,7 +15,8 @@
 <th>Team Radiant</th>
 <th>Team Dire</th>
 <th>Start Time</th>
-<th>Countdown</th>
+<th>Status</th>
+<th>Result</th>
 </tr>
 </thead>
 
@@ -39,7 +40,47 @@
 {{ date('d M Y H:i', $match['start_time']) }}
 </td>
 
-<td class="countdown"></td>
+<td>
+
+@if($match['start_time'] <= time())
+
+<span class="badge bg-danger">LIVE</span>
+
+@else
+
+<span class="text-muted">
+{{ date('d M H:i', $match['start_time']) }}
+</span>
+
+@endif
+
+</td>
+
+<td>
+
+@if(isset($match['radiant_score']))
+
+{{ $match['radiant_name'] ?? 'Radiant' }}
+{{ $match['radiant_score'] }}
+
+-
+
+{{ $match['dire_score'] }}
+{{ $match['dire_name'] ?? 'Dire' }}
+
+@if($match['radiant_win'])
+<span class="badge bg-success">Radiant Win</span>
+@else
+<span class="badge bg-danger">Dire Win</span>
+@endif
+
+@else
+
+<span class="text-muted">Live</span>
+
+@endif
+
+</td>
 
 </tr>
 
@@ -92,24 +133,47 @@ setInterval(updateCountdowns, 1000);
 
 <script>
 
-document.querySelectorAll('.star-btn').forEach(button => {
+document.addEventListener("DOMContentLoaded", function(){
 
-button.addEventListener('click', function(){
+const table = document.getElementById("matchesTable");
 
-let row = this.closest('tr');
+function sortTable(){
 
-if(this.textContent === "☆"){
+let rows = Array.from(table.querySelectorAll("tr"));
 
-this.textContent = "★";
-row.parentNode.prepend(row);
+rows.sort((a,b)=>{
 
-}else{
+let aStar = a.querySelector(".star-btn").textContent === "★";
+let bStar = b.querySelector(".star-btn").textContent === "★";
 
-this.textContent = "☆";
+let aTime = parseInt(a.dataset.start);
+let bTime = parseInt(b.dataset.start);
+
+if(aStar !== bStar){
+return bStar - aStar;
+}
+
+return aTime - bTime;
+
+});
+
+rows.forEach(row => table.appendChild(row));
 
 }
 
+document.querySelectorAll(".star-btn").forEach(button=>{
+
+button.addEventListener("click", function(){
+
+this.textContent = this.textContent === "☆" ? "★" : "☆";
+
+sortTable();
+
 });
+
+});
+
+sortTable();
 
 });
 
