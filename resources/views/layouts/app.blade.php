@@ -18,6 +18,13 @@ background:#f4f4f4;
 width:100%;
 height:auto;
 }
+
+.star-btn{
+font-size:15px;
+background:none;
+border:none;
+cursor:pointer;
+}
 </style>
 
 </head>
