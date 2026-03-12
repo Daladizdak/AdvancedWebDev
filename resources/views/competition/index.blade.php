@@ -24,10 +24,19 @@
 
 @foreach($matches as $match)
 
+@php
+$start = $match['start_time'];
+$duration = $match['duration'] ?? 0;
+$end = $start + $duration;
+$now = time();
+@endphp
+
 <tr data-start="{{ $match['start_time'] }}">
 
 <td>
-<button class="star-btn">☆</button>
+<button class="star-btn" style="border:none;background:none;font-size:18px;cursor:pointer;">
+☆
+</button>
 </td>
 
 <td>{{ $match['league_name'] ?? 'Unknown' }}</td>
@@ -42,15 +51,19 @@
 
 <td>
 
-@if($match['start_time'] <= time())
+@if($now < $start)
+
+<span class="text-muted">
+Upcoming
+</span>
+
+@elseif($now >= $start && $now <= $end)
 
 <span class="badge bg-danger">LIVE</span>
 
 @else
 
-<span class="text-muted">
-{{ date('d M H:i', $match['start_time']) }}
-</span>
+<span class="badge bg-secondary">Finished</span>
 
 @endif
 
@@ -92,44 +105,6 @@
 
 </div>
 
-
-<script>
-
-function updateCountdowns() {
-
-document.querySelectorAll('#matchesTable tr').forEach(row => {
-
-let startTime = row.dataset.start * 1000;
-let now = new Date().getTime();
-let diff = startTime - now;
-
-let countdownCell = row.querySelector('.countdown');
-
-if(diff <= 0){
-
-let passed = Math.abs(diff);
-
-let hours = Math.floor(passed / (1000 * 60 * 60));
-let minutes = Math.floor((passed % (1000 * 60 * 60)) / (1000 * 60));
-
-countdownCell.innerHTML = "Started " + hours + "h " + minutes + "m ago";
-
-return;
-}
-
-let hours = Math.floor(diff / (1000 * 60 * 60));
-let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-let seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-countdownCell.innerHTML = hours + "h " + minutes + "m " + seconds + "s";
-
-});
-
-}
-
-setInterval(updateCountdowns, 1000);
-
-</script>
 
 <script>
 
