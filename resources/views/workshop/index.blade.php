@@ -67,7 +67,7 @@ Delete
 
 <div class="modal-content">
 
-<form method="POST" action="{{ route('workshop.update', $hero->id) }}">
+<form method="POST" action="{{ route('workshop.update', $hero->id) }}" enctype="multipart/form-data">
 
 @csrf
 @method('PUT')
@@ -78,6 +78,16 @@ Delete
 </div>
 
 <div class="modal-body">
+
+@if ($errors->any())
+<div class="alert alert-danger">
+<ul class="mb-0">
+@foreach ($errors->all() as $error)
+<li>{{ $error }}</li>
+@endforeach
+</ul>
+</div>
+@endif
 
 <div class="mb-3">
 <label class="form-label">Hero Name</label>
@@ -99,7 +109,7 @@ value="{{ $hero->hero_name }}" required>
 </div>
 
 <div class="mb-3">
-<label class="form-label">Description</label>
+<label class="form-label">Description (min 10 characters)</label>
 <textarea name="description" class="form-control" rows="4" required>{{ $hero->description }}</textarea>
 </div>
 
@@ -143,6 +153,16 @@ value="{{ $hero->hero_name }}" required>
 
 <div class="modal-body">
 
+@if ($errors->any())
+<div class="alert alert-danger">
+<ul class="mb-0">
+@foreach ($errors->all() as $error)
+<li>{{ $error }}</li>
+@endforeach
+</ul>
+</div>
+@endif
+
 <div class="mb-3">
 <label class="form-label">Hero Image</label>
 <input type="file" name="image" class="form-control">
@@ -165,7 +185,7 @@ value="{{ $hero->hero_name }}" required>
 </div>
 
 <div class="mb-3">
-<label class="form-label">Description</label>
+<label class="form-label">Description (min 10 characters)</label>
 <textarea name="description" class="form-control" rows="4" required></textarea>
 </div>
 
@@ -182,5 +202,18 @@ value="{{ $hero->hero_name }}" required>
 </div>
 
 </div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+@if ($errors->any())
+var createHeroModal = new bootstrap.Modal(document.getElementById('createHeroModal'));
+createHeroModal.show();
+@endif
+
+});
+
+</script>
 
 @endsection

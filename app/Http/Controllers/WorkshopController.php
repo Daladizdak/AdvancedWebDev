@@ -21,6 +21,8 @@ class WorkshopController extends Controller
             'description' => 'required|min:10',
             'image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048'
         ]);
+        
+        $data = $request->all();
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('heroes', 'public');
