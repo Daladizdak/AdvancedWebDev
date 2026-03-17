@@ -10,87 +10,58 @@
 
 <thead>
 <tr>
-<th>Favourite</th>
+<th>Notify</th>
 <th>League</th>
-<th>Team Radiant</th>
-<th>Team Dire</th>
+<th>Team 1</th>
+<th>Team 2</th>
 <th>Start Time</th>
 <th>Status</th>
-<th>Result</th>
 </tr>
 </thead>
 
-<tbody id="matchesTable">
+<tbody>
 
 @foreach($matches as $match)
 
 @php
-$start = $match['start_time'];
-$duration = $match['duration'] ?? 0;
-$end = $start + $duration;
-$now = time();
+    $start = \Carbon\Carbon::parse($match['begin_at']);
+    $now = now();
 @endphp
 
-<tr data-start="{{ $match['start_time'] }}">
+<tr>
 
 <td>
-<button class="star-btn" style="border:none;background:none;font-size:18px;cursor:pointer;">
-☆
+<button class="btn btn-sm btn-info notify-btn"
+    data-match-name="{{ $match['name'] ?? 'Match' }}"
+    data-start-time="{{ $match['begin_at'] }}">
+    🔔
 </button>
 </td>
 
-<td>{{ $match['league_name'] ?? 'Unknown' }}</td>
-
-<td>{{ $match['radiant_name'] ?? 'TBD' }}</td>
-
-<td>{{ $match['dire_name'] ?? 'TBD' }}</td>
+<td>{{ $match['league']['name'] ?? 'Unknown' }}</td>
 
 <td>
-{{ date('d M Y H:i', $match['start_time']) }}
+{{ $match['opponents'][0]['opponent']['name'] ?? 'TBD' }}
+</td>
+
+<td>
+{{ $match['opponents'][1]['opponent']['name'] ?? 'TBD' }}
+</td>
+
+<td>
+{{ $start->format('d M Y H:i') }}
 </td>
 
 <td>
 
-@if($now < $start)
+@if($match['status'] == 'running')
+    <span class="badge bg-danger">LIVE</span>
 
-<span class="text-muted">
-Upcoming
-</span>
-
-@elseif($now >= $start && $now <= $end)
-
-<span class="badge bg-danger">LIVE</span>
+@elseif($match['status'] == 'finished')
+    <span class="badge bg-secondary">Finished</span>
 
 @else
-
-<span class="badge bg-secondary">Finished</span>
-
-@endif
-
-</td>
-
-<td>
-
-@if(isset($match['radiant_score']))
-
-{{ $match['radiant_name'] ?? 'Radiant' }}
-{{ $match['radiant_score'] }}
-
--
-
-{{ $match['dire_score'] }}
-{{ $match['dire_name'] ?? 'Dire' }}
-
-@if($match['radiant_win'])
-<span class="badge bg-success">Radiant Win</span>
-@else
-<span class="badge bg-danger">Dire Win</span>
-@endif
-
-@else
-
-<span class="text-muted">Live</span>
-
+    <span class="text-muted">Upcoming</span>
 @endif
 
 </td>
@@ -105,53 +76,41 @@ Upcoming
 
 </div>
 
-
 <script>
+document.querySelectorAll('.notify-btn').forEach(button => {
 
-document.addEventListener("DOMContentLoaded", function(){
+button.addEventListener('click', function () {
 
-const table = document.getElementById("matchesTable");
+    const matchName = this.dataset.matchName;
+    const startTime = new Date(this.dataset.startTime);
 
-function sortTable(){
+    if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+    }
 
-let rows = Array.from(table.querySelectorAll("tr"));
+    this.classList.add("active");
+    this.innerText = "🔔 Set";
 
-rows.sort((a,b)=>{
+    const interval = setInterval(() => {
 
-let aStar = a.querySelector(".star-btn").textContent === "★";
-let bStar = b.querySelector(".star-btn").textContent === "★";
+        const now = new Date();
 
-let aTime = parseInt(a.dataset.start);
-let bTime = parseInt(b.dataset.start);
+        if (now >= startTime) {
 
-if(aStar !== bStar){
-return bStar - aStar;
-}
+            if (Notification.permission === "granted") {
+                new Notification("Match Started!", {
+                    body: matchName + " is now LIVE 🔥"
+                });
+            }
 
-return aTime - bTime;
+            clearInterval(interval);
+        }
 
-});
-
-rows.forEach(row => table.appendChild(row));
-
-}
-
-document.querySelectorAll(".star-btn").forEach(button=>{
-
-button.addEventListener("click", function(){
-
-this.textContent = this.textContent === "☆" ? "★" : "☆";
-
-sortTable();
+    }, 10000);
 
 });
 
 });
-
-sortTable();
-
-});
-
 </script>
 
 @endsection

@@ -8,44 +8,23 @@ class CompetitionController extends Controller
 {
     public function index()
     {
-        $response = Http::get('https://api.opendota.com/api/proMatches');
-    
-        $tier1 = [
-            'The International',
-            'DreamLeague',
-            'ESL',
-            'PGL',
-            'Riyadh',
-            'Major',
-            'BetBoom',
-            'BLAST'
-        ];
-    
-        $now = time();
-    
-        $matches = collect($response->json())
-            ->filter(function ($match) use ($tier1, $now) {
-    
-                if(empty($match['league_name'])) return false;
-    
-               
-                $tierCheck = false;
-                foreach($tier1 as $league){
-                    if(stripos($match['league_name'], $league) !== false){
-                        $tierCheck = true;
-                        break;
-                    }
-                }
-    
-                if(!$tierCheck) return false;
-    
-                
-                return $match['start_time'] >= ($now - 86400);
-            })
-            ->sortBy('start_time')
+        $apiKey = env('PANDASCORE_API_KEY');
+
+       
+        $upcoming = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $apiKey
+        ])->get('https://api.pandascore.co/dota2/matches/upcoming')->json();
+        
+        $live = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $apiKey
+        ])->get('https://api.pandascore.co/dota2/matches/running')->json();
+        
+        $matches = collect($live)
+            ->merge($upcoming)
+            ->sortBy('begin_at')
             ->take(20)
             ->values();
-    
+
         return view('competition.index', compact('matches'));
     }
 }

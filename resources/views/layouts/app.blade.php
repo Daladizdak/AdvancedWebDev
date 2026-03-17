@@ -25,6 +25,27 @@ background:none;
 border:none;
 cursor:pointer;
 }
+
+.notify-btn {
+    background: transparent;
+    border: 1px solid #0dcaf0;
+    color: #0dcaf0;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    transition: 0.2s ease;
+}
+
+.notify-btn:hover {
+    background: #0dcaf0;
+    color: white;
+}
+
+.notify-btn.active {
+    background: #0dcaf0;
+    color: white;
+}
+
 </style>
 
 </head>
