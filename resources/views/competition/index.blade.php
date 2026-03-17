@@ -31,10 +31,11 @@
 <tr>
 
 <td>
-<button class="btn btn-sm btn-info notify-btn"
+<button class="notify-btn"
+    data-match-id="{{ $match['id'] }}"
     data-match-name="{{ $match['name'] ?? 'Match' }}"
     data-start-time="{{ $match['begin_at'] }}">
-    🔔
+    🔔 Notify
 </button>
 </td>
 
@@ -77,36 +78,68 @@
 </div>
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+
+let saved = JSON.parse(localStorage.getItem('notifiedMatches')) || [];
+
 document.querySelectorAll('.notify-btn').forEach(button => {
 
-button.addEventListener('click', function () {
+    const matchId = button.dataset.matchId;
 
-    const matchName = this.dataset.matchName;
-    const startTime = new Date(this.dataset.startTime);
 
-    if (Notification.permission !== "granted") {
-        Notification.requestPermission();
+    if (saved.includes(matchId)) {
+        button.classList.add("active");
+        button.innerText = "🔔 Set";
     }
 
-    this.classList.add("active");
-    this.innerText = "🔔 Set";
+    button.addEventListener('click', function () {
 
-    const interval = setInterval(() => {
+        let matchName = this.dataset.matchName;
+        let startTime = new Date(this.dataset.startTime);
 
-        const now = new Date();
+        let saved = JSON.parse(localStorage.getItem('notifiedMatches')) || [];
 
-        if (now >= startTime) {
 
-            if (Notification.permission === "granted") {
-                new Notification("Match Started!", {
-                    body: matchName + " is now LIVE 🔥"
-                });
-            }
+        if (saved.includes(matchId)) {
 
-            clearInterval(interval);
+            saved = saved.filter(id => id != matchId);
+            localStorage.setItem('notifiedMatches', JSON.stringify(saved));
+
+            this.classList.remove("active");
+            this.innerText = "🔔 Notify";
+
+            return;
         }
 
-    }, 10000);
+
+        if (Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
+
+        saved.push(matchId);
+        localStorage.setItem('notifiedMatches', JSON.stringify(saved));
+
+        this.classList.add("active");
+        this.innerText = "🔔 Set";
+
+        const interval = setInterval(() => {
+
+            const now = new Date();
+
+            if (now >= startTime) {
+
+                if (Notification.permission === "granted") {
+                    new Notification("Match Started!", {
+                        body: matchName + " is now LIVE 🔥"
+                    });
+                }
+
+                clearInterval(interval);
+            }
+
+        }, 10000);
+
+    });
 
 });
 
