@@ -6,142 +6,127 @@
 
 <h1 class="mb-4">Pro Dota 2 Matches</h1>
 
-<table class="table table-striped">
-
-<thead>
-<tr>
-<th>Notify</th>
-<th>League</th>
-<th>Team 1</th>
-<th>Team 2</th>
-<th>Start Time</th>
-<th>Status</th>
-</tr>
-</thead>
-
-<tbody>
+<div class="row">
 
 @foreach($matches as $match)
 
 @php
+    $team1 = $match['opponents'][0]['opponent']['name'] ?? 'TBD';
+    $team2 = $match['opponents'][1]['opponent']['name'] ?? 'TBD';
+    $league = $match['league']['name'] ?? 'Unknown';
     $start = \Carbon\Carbon::parse($match['begin_at']);
-    $now = now();
 @endphp
 
-<tr>
+<div class="col-md-4 mb-4">
 
-<td>
-<button class="notify-btn"
-    data-match-id="{{ $match['id'] }}"
-    data-match-name="{{ $match['name'] ?? 'Match' }}"
-    data-start-time="{{ $match['begin_at'] }}">
-    🔔 Notify
-</button>
-</td>
+<div class="card shadow-sm h-100">
 
-<td>{{ $match['league']['name'] ?? 'Unknown' }}</td>
+<div class="card-body text-center">
 
-<td>
-{{ $match['opponents'][0]['opponent']['name'] ?? 'TBD' }}
-</td>
+<h6 class="text-muted">{{ $league }}</h6>
 
-<td>
-{{ $match['opponents'][1]['opponent']['name'] ?? 'TBD' }}
-</td>
+<h5>{{ $team1 }} vs {{ $team2 }}</h5>
 
-<td>
+<p class="text-muted">
 {{ $start->format('d M Y H:i') }}
-</td>
-
-<td>
+</p>
 
 @if($match['status'] == 'running')
-    <span class="badge bg-danger">LIVE</span>
-
-@elseif($match['status'] == 'finished')
-    <span class="badge bg-secondary">Finished</span>
-
+<span class="badge bg-danger">LIVE</span>
 @else
-    <span class="text-muted">Upcoming</span>
+<span class="badge bg-secondary">Upcoming</span>
 @endif
 
-</td>
+<br><br>
 
-</tr>
-
-@endforeach
-
-</tbody>
-
-</table>
+<button class="notify-btn"
+    data-id="{{ $match['id'] }}"
+    data-name="{{ $team1 }} vs {{ $team2 }}"
+    data-time="{{ $match['begin_at'] }}">
+    🔔 Notify
+</button>
 
 </div>
 
+</div>
+
+</div>
+
+@endforeach
+
+</div>
+
+</div>
+
+<style>
+.notify-btn {
+    border: 1px solid #0dcaf0;
+    background: transparent;
+    color: #0dcaf0;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+.notify-btn.active {
+    background: #0dcaf0;
+    color: white;
+}
+</style>
+
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function(){
 
-let saved = JSON.parse(localStorage.getItem('notifiedMatches')) || [];
+    let saved = JSON.parse(localStorage.getItem('matches')) || [];
 
-document.querySelectorAll('.notify-btn').forEach(button => {
+    document.querySelectorAll(".notify-btn").forEach(btn => {
 
-    const matchId = button.dataset.matchId;
+        let id = btn.dataset.id;
 
-
-    if (saved.includes(matchId)) {
-        button.classList.add("active");
-        button.innerText = "🔔 Set";
-    }
-
-    button.addEventListener('click', function () {
-
-        let matchName = this.dataset.matchName;
-        let startTime = new Date(this.dataset.startTime);
-
-        let saved = JSON.parse(localStorage.getItem('notifiedMatches')) || [];
-
-
-        if (saved.includes(matchId)) {
-
-            saved = saved.filter(id => id != matchId);
-            localStorage.setItem('notifiedMatches', JSON.stringify(saved));
-
-            this.classList.remove("active");
-            this.innerText = "🔔 Notify";
-
-            return;
+    
+        if(saved.includes(id)){
+            btn.classList.add("active");
+            btn.innerText = "🔔 Set";
         }
 
+        btn.addEventListener("click", function(){
 
-        if (Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
+            let name = this.dataset.name;
+            let time = new Date(this.dataset.time);
 
-        saved.push(matchId);
-        localStorage.setItem('notifiedMatches', JSON.stringify(saved));
+            let saved = JSON.parse(localStorage.getItem('matches')) || [];
 
-        this.classList.add("active");
-        this.innerText = "🔔 Set";
+           
+            if(saved.includes(id)){
+                saved = saved.filter(x => x != id);
+                localStorage.setItem('matches', JSON.stringify(saved));
 
-        const interval = setInterval(() => {
-
-            const now = new Date();
-
-            if (now >= startTime) {
-
-                if (Notification.permission === "granted") {
-                    new Notification("Match Started!", {
-                        body: matchName + " is now LIVE 🔥"
-                    });
-                }
-
-                clearInterval(interval);
+                this.classList.remove("active");
+                this.innerText = "🔔 Notify";
+                return;
             }
 
-        }, 10000);
+            
+            if(Notification.permission !== "granted"){
+                Notification.requestPermission();
+            }
+
+            saved.push(id);
+            localStorage.setItem('matches', JSON.stringify(saved));
+
+            this.classList.add("active");
+            this.innerText = "🔔 Set";
+
+            setInterval(() => {
+                if(new Date() >= time){
+                    new Notification("Match Started!", {
+                        body: name + " is LIVE"
+                    });
+                }
+            }, 10000);
+
+        });
 
     });
-
-});
 
 });
 </script>
