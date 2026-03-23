@@ -6,6 +6,12 @@
 
 <h1 class="mb-4">Pro Dota 2 Matches</h1>
 
+<div class="mb-3">
+    <button id="geoBtn" class="btn btn-outline-info btn-sm">
+        📍 Use my local time
+    </button>
+</div>
+
 <div class="row">
 
 @foreach($matches as $match)
@@ -27,8 +33,9 @@
 
 <h5>{{ $team1 }} vs {{ $team2 }}</h5>
 
-<p class="text-muted">
-{{ $start->format('d M Y H:i') }}
+<p class="text-muted match-time"
+   data-time="{{ $match['begin_at'] }}">
+   {{ \Carbon\Carbon::parse($match['begin_at'])->format('d M Y H:i') }} (UTC)
 </p>
 
 @if($match['status'] == 'running')
@@ -116,17 +123,59 @@ document.addEventListener("DOMContentLoaded", function(){
             this.classList.add("active");
             this.innerText = "🔔 Set";
 
-            setInterval(() => {
+            const interval = setInterval(() => {
                 if(new Date() >= time){
                     new Notification("Match Started!", {
                         body: name + " is LIVE"
                     });
+                    clearInterval(interval);
                 }
             }, 10000);
 
         });
 
     });
+
+});
+
+document.getElementById("geoBtn").addEventListener("click", function(){
+
+if(!navigator.geolocation){
+    alert("Geolocation not supported");
+    return;
+}
+
+navigator.geolocation.getCurrentPosition(
+
+    
+    function(position){
+
+        let userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        document.querySelectorAll(".match-time").forEach(el => {
+
+            let utcTime = el.dataset.time;
+
+            let localTime = new Date(utcTime).toLocaleString('en-GB', {
+                timeZone: userTimeZone,
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            el.innerText = localTime + " (Local)";
+        });
+
+    },
+
+    
+    function(error){
+        alert("Location access blocked or not allowed.");
+        console.log(error);
+    }
+
+);
 
 });
 </script>
