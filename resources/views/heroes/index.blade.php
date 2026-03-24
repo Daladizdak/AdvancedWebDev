@@ -21,8 +21,9 @@
 
 @foreach($heroes as $hero)
 
-<div class="col-md-3 mb-4 hero-card"
-     data-name="{{ strtolower($hero['localized_name'] ?? '') }}"
+<div class="col-md-3 mb-4 hero-card hero-clickable"
+     data-id="{{ $hero['id'] }}"
+     data-name="{{ $hero['localized_name'] }}"
      data-attr="{{ $hero['primary_attr'] ?? '' }}">
 
     <div class="card text-center h-100 shadow-sm">
@@ -49,14 +50,44 @@
 
 </div>
 
+
 @endforeach
 
 </div>
 
 </div>
 
+<div class="modal fade" id="heroModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="heroModalName"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body text-center" id="heroModalBody">
+        <div class="spinner-border"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+<style>
+.hero-clickable {
+    cursor: pointer;
+}
+</style>
+
+
+
 <script>
 
+
+document.addEventListener("DOMContentLoaded", function(){
 
 const searchInput = document.getElementById("searchInput");
 const filterButtons = document.querySelectorAll(".filter-btn");
@@ -76,28 +107,68 @@ function filterHeroes(){
         let matchSearch = name.includes(search);
         let matchFilter = (currentFilter === "all" || attr === currentFilter);
 
-        if(matchSearch && matchFilter){
-            hero.style.display = "block";
-        } else {
-            hero.style.display = "none";
-        }
-
+        hero.style.display = (matchSearch && matchFilter) ? "block" : "none";
     });
 }
 
-
 searchInput.addEventListener("input", filterHeroes);
-
 
 filterButtons.forEach(btn => {
     btn.addEventListener("click", function(){
-
         currentFilter = this.dataset.attr;
-
         filterHeroes();
     });
 });
 
+
+const heroModal = new bootstrap.Modal(document.getElementById('heroModal'));
+
+document.querySelectorAll('.hero-clickable').forEach(card => {
+
+    card.addEventListener('click', function(){
+
+        
+
+        let heroId = this.dataset.id;
+        let heroName = this.dataset.name;
+
+        document.getElementById('heroModalName').innerText = heroName;
+        document.getElementById('heroModalBody').innerHTML =
+            '<div class="spinner-border"></div>';
+
+        heroModal.show();
+
+        fetch('https://api.opendota.com/api/heroStats')
+            .then(res => res.json())
+            .then(data => {
+
+                let hero = data.find(h => h.id == heroId);
+
+                if(!hero){
+                    document.getElementById('heroModalBody').innerHTML =
+                        "Hero not found";
+                    return;
+                }
+
+                document.getElementById('heroModalBody').innerHTML = `
+                    <p><strong>Attack:</strong> ${hero.attack_type}</p>
+                    <p><strong>Roles:</strong> ${hero.roles.join(', ')}</p>
+                    <p><strong>Health:</strong> ${hero.base_health}</p>
+                    <p><strong>Mana:</strong> ${hero.base_mana}</p>
+                    <p><strong>Armor:</strong> ${hero.base_armor}</p>
+                    <p><strong>Speed:</strong> ${hero.move_speed}</p>
+                `;
+            })
+            .catch(() => {
+                document.getElementById('heroModalBody').innerHTML =
+                    '<p class="text-danger">Error loading stats</p>';
+            });
+
+    });
+
+});
+
+});
 </script>
 
 @endsection
