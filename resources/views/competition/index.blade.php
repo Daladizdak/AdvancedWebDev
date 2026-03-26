@@ -97,8 +97,11 @@ document.addEventListener("DOMContentLoaded", function(){
 
         btn.addEventListener("click", function(){
 
+
+            let id = this.dataset.id;
             let name = this.dataset.name;
             let time = new Date(this.dataset.time);
+            let now = new Date();
 
             let saved = JSON.parse(localStorage.getItem('matches')) || [];
 
@@ -113,24 +116,41 @@ document.addEventListener("DOMContentLoaded", function(){
             }
 
             
-            if(Notification.permission !== "granted"){
-                Notification.requestPermission();
-            }
+            Notification.requestPermission().then(permission => {
+
+                if(permission === "granted"){
+
+                    let now = new Date();
+
+                    
+                    if(now >= time){
+                        new Notification("Match is LIVE!", {
+                            body: name + " is happening now 🔥"
+                        });
+                        return;
+                    }
+
+                    
+                    const interval = setInterval(() => {
+                        if(new Date() >= time){
+                            new Notification("Match Started!", {
+                                body: name + " is LIVE"
+                            });
+                            clearInterval(interval);
+                        }
+                    }, 10000);
+
+                } else {
+                    alert("Notifications blocked");
+                }
+
+                });
 
             saved.push(id);
             localStorage.setItem('matches', JSON.stringify(saved));
 
             this.classList.add("active");
             this.innerText = "🔔 Set";
-
-            const interval = setInterval(() => {
-                if(new Date() >= time){
-                    new Notification("Match Started!", {
-                        body: name + " is LIVE"
-                    });
-                    clearInterval(interval);
-                }
-            }, 10000);
 
         });
 

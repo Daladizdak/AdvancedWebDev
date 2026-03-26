@@ -149,12 +149,15 @@ document.querySelectorAll('.hero-clickable').forEach(card => {
                         "Hero not found";
                     return;
                 }
+                
+                let health = hero.base_health + (hero.base_str * 22);
+                let mana = hero.base_mana + (hero.base_int * 12);
 
                 document.getElementById('heroModalBody').innerHTML = `
                     <p><strong>Attack:</strong> ${hero.attack_type}</p>
                     <p><strong>Roles:</strong> ${hero.roles.join(', ')}</p>
-                    <p><strong>Health:</strong> ${hero.base_health}</p>
-                    <p><strong>Mana:</strong> ${hero.base_mana}</p>
+                    <p><strong>Health:</strong> ${health}</p>
+                    <p><strong>Mana:</strong> ${mana}</p>
                     <p><strong>Armor:</strong> ${hero.base_armor}</p>
                     <p><strong>Speed:</strong> ${hero.move_speed}</p>
                 `;
